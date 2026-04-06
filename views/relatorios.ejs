@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/icon.ico" type="image/x-icon">
+    <title>Gestão de Absenteísmo - Chronos</title>
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; --success-color: #27ae60; --bg-color: #f4f6f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; }
+        
+        .header { background: var(--primary-color); color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .logo img { height: 25px; }
+
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .filter-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        
+        form { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
+        label { font-size: 12px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        
+        .btn-submit { background: var(--primary-color); color: white; border: none; padding: 11px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-csv { background: var(--success-color); color: white; text-decoration: none; padding: 11px 20px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+
+        .report-table { width: 100%; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 13px; color: #2c3e50; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f1f1f1; font-size: 14px; }
+        tr:hover { background: #fcfcfc; }
+        .status-falta { color: #e74c3c; font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo"><img src="/icon.ico"> Chronos</div>
+    <a href="/rh/dashboard" style="color: white; text-decoration: none; font-size: 13px;">Painel RH</a>
+</header>
+
+<div class="container">
+    <h1>Relatório de Faltas</h1>
+    
+    <div class="filter-card">
+        <form action="/rh/relatorios" method="GET">
+            <div class="field">
+                <label>Início</label>
+                <input type="date" name="dataInicio" value="<%= dataInicio %>">
+            </div>
+            <div class="field">
+                <label>Fim</label>
+                <input type="date" name="dataFim" value="<%= dataFim %>">
+            </div>
+            <div class="field">
+                <label>Funcionário</label>
+                <select name="funcionarioId">
+                    <option value="todos">Todos</option>
+                    <% listaFuncionarios.forEach(f => { %>
+                        <option value="<%= f.id %>" <%= funcionarioIdSelecionado == f.id ? 'selected' : '' %>><%= f.nome %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Gerar</button>
+            <a href="/rh/relatorios/download?dataInicio=<%= dataInicio %>&dataFim=<%= dataFim %>&funcionarioId=<%= funcionarioIdSelecionado %>" class="btn-csv">Exportar CSV</a>
+        </form>
+    </div>
+
+    <div class="report-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Colaborador</th>
+                    <th>Data da Ocorrência</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (faltas.length > 0) { %>
+                    <% faltas.forEach(f => { %>
+                        <tr>
+                            <td><strong><%= f.nome %></strong></td>
+                            <td><%= new Date(f.data + 'T12:00:00').toLocaleDateString('pt-BR') %></td>
+                            <td><span class="status-falta">FALTA NÃO JUSTIFICADA</span></td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="3" style="text-align: center; padding: 40px; color: #95a5a6;">Nenhuma falta encontrada no período.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

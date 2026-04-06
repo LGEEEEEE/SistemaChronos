@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Super Admin - Chronos SaaS</title>
+    <link rel="shortcut icon" href="/icon.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; }
+        .navbar-chronos { background-color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-chronos shadow-sm mb-4">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="/superadmin/dashboard">
+                <img src="/icon.ico" alt="Logo" width="30" height="30" class="d-inline-block align-text-top me-2 rounded">
+                Chronos <span class="badge bg-danger ms-2 fs-6 shadow-sm">SUPER ADMIN</span>
+            </a>
+            <div class="d-flex">
+                <form action="/logout" method="POST" class="m-0">
+                    <button type="submit" class="btn btn-outline-light btn-sm fw-bold">Sair</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Gestão de Inquilinos (Empresas)</h2>
+                <p class="text-muted">Monitoriza e controla o acesso de todas as empresas no teu SaaS.</p>
+            </div>
+        </div>
+
+        <% if (locals.query && query.msg === 'status_alterado') { %>
+            <div class="alert alert-success fw-bold shadow-sm" role="alert">
+                ✅ O estado da empresa foi alterado com sucesso!
+            </div>
+        <% } %>
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-borderless align-middle mb-0">
+                    <thead class="table-light text-secondary border-bottom">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nome da Empresa</th>
+                            <th>Utilizadores</th>
+                            <th>Data de Registo</th>
+                            <th>Estado (SaaS)</th>
+                            <th class="pe-4 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% empresas.forEach(empresa => { %>
+                            <tr class="border-bottom">
+                                <td class="ps-4 fw-bold text-secondary">#<%= empresa.id %></td>
+                                <td>
+                                    <span class="fw-bold text-dark"><%= empresa.nome %></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary rounded-pill fs-6"><%= empresa.Users ? empresa.Users.length : 0 %></span>
+                                </td>
+                                <td><%= new Date(empresa.createdAt).toLocaleDateString('pt-BR') %></td>
+                                <td>
+                                    <% if (empresa.ativo) { %>
+                                        <span class="badge bg-success px-3 py-2">Ativo</span>
+                                    <% } else { %>
+                                        <span class="badge bg-danger px-3 py-2">Bloqueado</span>
+                                    <% } %>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <% if (empresa.id !== 1) { %>
+                                        <form action="/superadmin/empresa/<%= empresa.id %>/toggle-status" method="POST" class="m-0">
+                                            <% if (empresa.ativo) { %>
+                                                <button type="submit" class="btn btn-outline-danger btn-sm fw-bold" onclick="return confirm('Bloquear o acesso desta empresa? Ninguém mais poderá bater ponto.')">Bloquear Acesso</button>
+                                            <% } else { %>
+                                                <button type="submit" class="btn btn-success btn-sm fw-bold">Liberar Acesso</button>
+                                            <% } %>
+                                        </form>
+                                    <% } else { %>
+                                        <span class="badge bg-light text-muted border">Matriz (Intocável)</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

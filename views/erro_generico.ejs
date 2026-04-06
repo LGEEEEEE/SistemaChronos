@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ops! Algo deu errado - Chronos</title>
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; --danger-color: #e74c3c; --bg-color: #f4f6f9; --text-color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box; text-align: center; }
+        
+        /* Ajuste para a Logo do Chronos */
+        .logo-chronos { display: flex; align-items: center; justify-content: center; margin-bottom: 40px; font-size: 28px; font-weight: bold; color: var(--primary-color); text-decoration: none; }
+        .logo-chronos img { width: 45px; height: 45px; margin-right: 12px; border-radius: 8px; }
+
+        .error-card { background: white; padding: 50px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 550px; box-sizing: border-box; border-top: 5px solid var(--danger-color); }
+        
+        .error-icon { font-size: 60px; color: var(--danger-color); margin-bottom: 20px; }
+        h1 { font-size: 28px; color: var(--primary-color); margin: 0 0 15px 0; font-weight: 800; }
+        p { margin: 0 0 30px 0; color: #7f8c8d; font-size: 16px; line-height: 1.6; }
+
+        .action-btn { display: inline-block; padding: 15px 30px; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        .action-btn:hover { background-color: #1a252f; }
+        .action-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+<a href="/" class="logo-chronos">
+    <img src="/icon.ico" alt="Logo Chronos"> Chronos
+</a>
+
+<div class="error-card">
+    <div class="error-icon">⚠️</div>
+    <h1><%= titulo %></h1>
+    <p><%= mensagem %></p>
+    
+    <% if (typeof voltarLink !== 'undefined' && voltarLink) { %>
+        <a href="<%= voltarLink %>" class="action-btn">Tentar Novamente / Voltar</a>
+    <% } else { %>
+        <a href="javascript:history.back()" class="action-btn">Voltar</a>
+    <% } %>
+</div>
+
+</body>
+</html>

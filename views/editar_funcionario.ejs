@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Funcionário</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .edit-container { background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); width: 100%; max-width: 480px; }
+        h1 { color: #333; margin-bottom: 24px; font-size: 24px; text-align: center; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-group input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .form-group input:focus { outline: none; border-color: #2980b9; }
+        .btn-container { display: flex; gap: 10px; margin-top: 30px; }
+        .submit-btn, .cancel-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; text-decoration: none; text-align: center; }
+        .submit-btn { background-color: #2980b9; color: white; }
+        .submit-btn:hover { background-color: #3498db; }
+        .cancel-btn { background-color: #f1f1f1; color: #333; }
+        .cancel-btn:hover { background-color: #e1e1e1; }
+    </style>
+</head>
+
+<body>
+    <div class="edit-container">
+        <h1>Editar Dados do Funcionário</h1>
+        <form action="/rh/funcionario/editar/<%= funcionario.id %>" method="POST" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label for="nome">Nome do Funcionário</label>
+                <input id="nome" type="text" name="nome" value="<%= funcionario.nome %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" value="<%= funcionario.email %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Nova Senha (opcional)</label>
+                <input id="senha" type="password" name="senha" placeholder="Deixe em branco para não alterar">
+            </div>
+
+            <% const diasAtuais = (funcionario.diasTrabalho || '1,2,3,4,5').split(','); %>
+            <div class="form-group" style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
+                <label style="margin-bottom: 10px;">📅 Escala de Trabalho (Dias Úteis)</label>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="0" <%= diasAtuais.includes('0') ? 'checked' : '' %>> Dom</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="1" <%= diasAtuais.includes('1') ? 'checked' : '' %>> Seg</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="2" <%= diasAtuais.includes('2') ? 'checked' : '' %>> Ter</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="3" <%= diasAtuais.includes('3') ? 'checked' : '' %>> Qua</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="4" <%= diasAtuais.includes('4') ? 'checked' : '' %>> Qui</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="5" <%= diasAtuais.includes('5') ? 'checked' : '' %>> Sex</label>
+                    <label style="font-weight: normal;"><input type="checkbox" name="diasTrabalho[]" value="6" <%= diasAtuais.includes('6') ? 'checked' : '' %>> Sáb</label>
+                </div>
+            </div>
+
+            <hr style="border: 0; height: 1px; background-color: #eee; margin: 20px 0;">
+
+            <div class="form-group">
+                <label for="fotoReferencia">Foto de Referência (Reconhecimento Facial)</label>
+                <% if (funcionario.fotoReferenciaUrl) { %>
+                    <p style="margin-top: 0; font-size: 13px; color: #27ae60;"><strong>✅ Foto já cadastrada.</strong>
+                        Envie uma nova apenas se precisar trocar.</p>
+                    <% } else { %>
+                        <p style="margin-top: 0; font-size: 13px; color: #e74c3c;"><strong>❌ Nenhuma foto
+                                cadastrada.</strong> O ponto por reconhecimento facial não vai funcionar para este
+                            funcionário.</p>
+                        <% } %>
+                            <input id="fotoReferencia" type="file" name="fotoReferencia" accept="image/*"
+                                style="padding: 10px 0; border: none;">
+            </div>
+
+            <div class="btn-container">
+                <a href="/rh/dashboard" class="cancel-btn">Cancelar</a>
+                <button class="submit-btn" type="submit">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

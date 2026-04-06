@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/icon.ico" type="image/x-icon">
+    <title>Meu Extrato de Ponto - Chronos</title>
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; --success-color: #27ae60; --danger-color: #e74c3c; --bg-color: #f4f6f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; color: #333; }
+        
+        .navbar { background: var(--primary-color); color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 20px; }
+        .logo-area img { height: 30px; }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-weight: 600; font-size: 13px; color: #666; }
+        input, button { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        
+        .btn-filter { background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-filter:hover { background: #2980b9; }
+
+        .semana-titulo { background: #ecf0f1; padding: 12px 20px; border-radius: 8px; margin: 30px 0 15px 0; color: var(--primary-color); font-weight: bold; display: flex; justify-content: space-between; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; background: white; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #7f8c8d; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 14px; }
+        
+        .tag-tipo { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #eee; margin-right: 5px; font-weight: bold; }
+        .saldo-pos { color: var(--success-color); font-weight: bold; }
+        .saldo-neg { color: var(--danger-color); font-weight: bold; }
+        .obs-falta { color: var(--danger-color); font-weight: bold; font-size: 12px; }
+        
+        @media (max-width: 768px) { .filter-grid { grid-template-columns: 1fr; } table, thead, tbody, th, td, tr { display: block; } th { display: none; } td { border: none; padding: 8px 0; } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo-area">
+        <img src="/icon.ico" alt="Logo Chronos"> Chronos
+    </div>
+    <a href="/dashboard" style="color: white; text-decoration: none; font-size: 14px;">← Voltar ao Ponto</a>
+</nav>
+
+<div class="container">
+    <div class="card">
+        <h2 style="margin-top: 0;">Extrato de Horas</h2>
+        <form action="/meu_relatorio" method="GET" class="filter-grid">
+            <div class="input-group">
+                <label>Data Início</label>
+                <input type="date" name="dataInicio" value="<%= dataInicioSelecionada %>">
+            </div>
+            <div class="input-group">
+                <label>Data Fim</label>
+                <input type="date" name="dataFim" value="<%= dataFimSelecionada %>">
+            </div>
+            <button type="submit" class="btn-filter">Filtrar Período</button>
+        </form>
+    </div>
+
+    <% if (locals.relatorioAgrupado && relatorioAgrupado.semanas.length > 0) { %>
+        <% relatorioAgrupado.semanas.forEach((semana, index) => { %>
+            <div class="semana-titulo">
+                <span>Semana <%= index + 1 %></span>
+                <span style="font-size: 12px; font-weight: normal;">Início: <%= semana.dataInicioSemana.toLocaleDateString('pt-BR') %></span>
+            </div>
+            
+            <div class="card" style="padding: 0 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Data</th>
+                            <th>Registros</th>
+                            <th>Total</th>
+                            <th>Saldo</th>
+                            <th>Obs.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% const diasNomes = ['segunda', 'terca', 'quarta', 'quinta', 'sexta']; %>
+                        <% const diasLabels = {segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta', sexta: 'Sexta'}; %>
+                        
+                        <% diasNomes.forEach(diaNome => { const dia = semana[diaNome]; %>
+                            <tr>
+                                <td><strong><%= diasLabels[diaNome] %></strong></td>
+                                <% if (dia) { %>
+                                    <td><%= dia.data.toLocaleDateString('pt-BR') %></td>
+                                    <td>
+                                        <% dia.registros.forEach(r => { %>
+                                            <span class="tag-tipo"><%= r.tipo[0] %></span><%= new Date(r.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) %> 
+                                        <% }) %>
+                                    </td>
+                                    <td><%= dia.horasTrabalhadas %></td>
+                                    <td class="<%= dia.saldoHoras.startsWith('+') ? 'saldo-pos' : (dia.saldoHoras.startsWith('-') ? 'saldo-neg' : '') %>">
+                                        <%= dia.saldoHoras %>
+                                    </td>
+                                    <td class="<%= dia.observacao === 'Falta' ? 'obs-falta' : '' %>"><%= dia.observacao %></td>
+                                <% } else { %>
+                                    <td colspan="5" style="color: #ccc; font-style: italic;">Sem expediente registrado</td>
+                                <% } %>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <div class="card" style="text-align: center; color: #7f8c8d;">Nenhum registro encontrado para estas datas.</div>
+    <% } %>
+</div>
+
+</body>
+</html>

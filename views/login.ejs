@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Chronos Ponto Facial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/icon.ico">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar-chronos {
+            background-color: #2c3e50;
+        }
+
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            max-width: 400px;
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-dark navbar-chronos shadow-sm">
+        <div class="container justify-content-center">
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="/">
+                <img src="/icon.ico" alt="Logo Chronos" width="30" height="30"
+                    class="d-inline-block align-text-top me-2 rounded">
+                Chronos
+            </a>
+        </div>
+    </nav>
+
+    <div class="login-wrapper">
+        <div class="card login-card shadow-lg">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark mb-1">Acesso do Colaborador</h3>
+                    <p class="text-muted">Ponto por reconhecimento facial</p>
+                </div>
+
+                <% if (typeof error !=='undefined' ) { %>
+                    <div class="alert alert-danger p-3 mb-4 text-center" role="alert">
+                        <strong>Erro:</strong>
+                        <%= error %>
+                    </div>
+                    <% } %>
+
+                        <% if (locals.query && query.msg==='assinatura_pendente' ) { %>
+                            <div class="alert alert-warning p-3 mb-4 text-center" role="alert">
+                                Sua empresa está com pagamento pendente. Peça ao RH para regularizar.
+                            </div>
+                            <% } %>
+
+                                <form action="/login" method="POST">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label fw-bold text-secondary">E-mail
+                                            Corporativo</label>
+                                        <input type="email" class="form-control form-control-lg" id="email" name="email"
+                                            placeholder="exemplo@empresa.com" required>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="senha" class="form-label fw-bold text-secondary">Sua Senha</label>
+                                        <input type="password" class="form-control form-control-lg" id="senha"
+                                            name="senha" placeholder="••••••••" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold mb-3">Entrar e
+                                        Bater Ponto</button>
+                                </form>
+
+                                <div class="text-center mt-4 pt-3 border-top">
+                                    <p class="text-muted small mb-1">Esqueceu a senha? Procure seu RH.</p>
+                                    <a href="/rh/login" class="text-decoration-none fw-bold small">É administrador?
+                                        Acesse a Área da Empresa</a>
+                                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
