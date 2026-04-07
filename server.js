@@ -1,5 +1,5 @@
 require('dotenv').config(); // <-- AGORA SIM, NA LINHA 1 ABSOLUTA!
-
+process.env.TZ = 'America/Sao_Paulo'; // <-- A BALA DE PRATA DO FUSO HORÁRIO
 // =================================================================
 // INICIALIZAÇÃO DO SERVIDOR (ARQUITETURA MVC)
 // =================================================================
