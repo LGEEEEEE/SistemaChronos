@@ -1,5 +1,6 @@
 const { User, Empresa, RegistroPonto, Ferias, Configuracao, Op } = require('../models/db');
 const faceapi = require('@vladmandic/face-api');
+const sharp = require('sharp');
 const { Image } = require('canvas');
 const { calcularHorasTrabalhadas, getHorarioExpediente } = require('./calculosController');
 const bcrypt = require('bcryptjs');
@@ -65,13 +66,13 @@ exports.renderDashboard = async (req, res) => {
             expedientes[u.id] = getHorarioExpediente(u, hoje);
         });
 
-        res.render('rh_dashboard', { 
-            usuarios: todosUsuarios, 
-            registros: registrosPorUsuario, 
-            horas: horasPorUsuario, 
-            expedientes, 
-            ferias: feriasPorUsuario, 
-            duracaoAlmocoAtual, 
+        res.render('rh_dashboard', {
+            usuarios: todosUsuarios,
+            registros: registrosPorUsuario,
+            horas: horasPorUsuario,
+            expedientes,
+            ferias: feriasPorUsuario,
+            duracaoAlmocoAtual,
             query: req.query,
             userIdLogado: req.session.userId // 🚀 Injetando o seu ID para o front-end
         });
@@ -97,11 +98,21 @@ exports.renderEditarEmpresa = async (req, res) => {
         const empresaId = req.session.empresaId;
         const empresa = await Empresa.findByPk(empresaId);
         const configIp = await Configuracao.findOne({ where: { chave: 'allowed_ips', EmpresaId: empresaId } });
-        
-        res.render('editar_empresa', { 
-            empresa, 
+
+        // 🚀 CAPTURANDO O IP REAL NA HOSTINGER
+        let userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+
+        // Se vier mais de um IP (comum em proxies), pega o primeiro
+        if (typeof userIp === 'string') userIp = userIp.split(',')[0].trim();
+
+        // Converte o localhost de IPv6 para IPv4 para ficar mais bonito na tela
+        if (userIp === '::1' || userIp === '::ffff:127.0.0.1') userIp = '127.0.0.1';
+
+        res.render('editar_empresa', {
+            empresa,
             allowedIps: configIp ? configIp.valor : '',
-            query: req.query 
+            userIp, // Enviando a variável do IP para o EJS
+            query: req.query
         });
     } catch (error) {
         console.error("Erro ao carregar empresa:", error);
@@ -115,7 +126,7 @@ exports.editarEmpresa = async (req, res) => {
         if (!nome || nome.trim() === '') return res.redirect('/rh/empresa?erro=nome_vazio');
 
         const configExistente = await Configuracao.findOne({ where: { chave: 'allowed_ips', EmpresaId: req.session.empresaId } });
-        
+
         if (configExistente) {
             await configExistente.update({ valor: (allowedIps || '').trim() });
         } else {
@@ -124,8 +135,8 @@ exports.editarEmpresa = async (req, res) => {
 
         await Empresa.update({ nome, cnpj }, { where: { id: req.session.empresaId } });
         res.redirect('/rh/empresa?msg=dados_salvos');
-    } catch (error) { 
-        res.status(500).send('Erro ao guardar.'); 
+    } catch (error) {
+        res.status(500).send('Erro ao guardar.');
     }
 };
 
@@ -136,10 +147,19 @@ exports.atualizarLogo = async (req, res) => {
         const empresa = await Empresa.findByPk(empresaId);
 
         if (supabase) {
-            const fileName = `logo_${empresaId}_${Date.now()}.png`;
+            // 🚀 MÁGICA DA COMPRESSÃO AQUI!
+            // Vamos converter para WebP (muito mais leve) e limitar o tamanho para 500x500 px.
+            const bufferComprimido = await sharp(req.file.buffer)
+                .resize({ width: 500, height: 500, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 80 }) // 80% de qualidade mantém a imagem linda, mas minúscula!
+                .toBuffer();
+
+            // Note que mudamos a extensão para .webp
+            const fileName = `logo_${empresaId}_${Date.now()}.webp`;
+
             const { error } = await supabase.storage
-                .from('ponto-comprovantes') 
-                .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+                .from('ponto-comprovantes')
+                .upload(fileName, bufferComprimido, { contentType: 'image/webp' });
 
             if (error) throw error;
 
@@ -149,6 +169,12 @@ exports.atualizarLogo = async (req, res) => {
         res.redirect('/rh/empresa?msg=logo_atualizada');
     } catch (error) {
         console.error("Erro ao atualizar logo:", error);
+
+        // Tratamento de erro caso o Supabase ainda reclame de algo
+        if (error.statusCode === '413' || error.status === 400) {
+            return res.redirect('/rh/empresa?erro=arquivo_muito_grande');
+        }
+
         res.status(500).send('Erro interno ao atualizar a logo da empresa.');
     }
 };
@@ -180,7 +206,7 @@ exports.cadastrarFuncionario = async (req, res) => {
                 imgRef.src = req.file.buffer;
                 const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 });
                 const detRef = await faceapi.detectSingleFace(imgRef, options).withFaceLandmarks().withFaceDescriptor();
-                
+
                 if (detRef) {
                     // Converte a matriz matemática (Float32Array) para um Texto (JSON)
                     req.body.faceDescriptorTexto = JSON.stringify(Array.from(detRef.descriptor));
@@ -192,10 +218,10 @@ exports.cadastrarFuncionario = async (req, res) => {
             }
         }
 
-        await User.create({ 
-            nome, email, senha: senhaHash, role: 'funcionario', 
-            EmpresaId: req.session.empresaId, 
-            fotoReferenciaUrl, 
+        await User.create({
+            nome, email, senha: senhaHash, role: 'funcionario',
+            EmpresaId: req.session.empresaId,
+            fotoReferenciaUrl,
             diasTrabalho: diasTrabalhoStr,
             faceDescriptor: req.body.faceDescriptorTexto || null // 🧠 Salvando no banco!
         });
@@ -221,11 +247,11 @@ exports.deletarFuncionario = async (req, res) => {
 
         const funcionario = await User.findOne({ where: { id: id, EmpresaId: req.session.empresaId, role: { [Op.in]: ['funcionario', 'rh'] } } });
         if (!funcionario) return res.status(404).send('Funcionário não encontrado ou não pertence à sua empresa.');
-        
+
         await funcionario.destroy();
         res.redirect('/rh/dashboard?msg=func_deletado');
-    } catch (error) { 
-        res.status(500).send('Erro interno ao excluir.'); 
+    } catch (error) {
+        res.status(500).send('Erro interno ao excluir.');
     }
 };
 
@@ -258,7 +284,7 @@ exports.editarFuncionario = async (req, res) => {
                 imgRef.src = req.file.buffer;
                 const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 });
                 const detRef = await faceapi.detectSingleFace(imgRef, options).withFaceLandmarks().withFaceDescriptor();
-                
+
                 if (detRef) {
                     // Converte a matriz para texto e salva no banco
                     dadosParaAtualizar.faceDescriptor = JSON.stringify(Array.from(detRef.descriptor));
@@ -269,11 +295,11 @@ exports.editarFuncionario = async (req, res) => {
                 throw new Error("Falha na IA ao ler o novo rosto: " + errIA.message);
             }
         }
-        
+
         await User.update(dadosParaAtualizar, { where: { id: req.params.id, EmpresaId: req.session.empresaId, role: { [Op.in]: ['funcionario', 'rh'] } } });
         res.redirect('/rh/dashboard?msg=func_editado');
-    } catch (error) { 
-        res.status(500).send('Erro ao salvar os dados: ' + error.message); 
+    } catch (error) {
+        res.status(500).send('Erro ao salvar os dados: ' + error.message);
     }
 };
 
@@ -307,7 +333,7 @@ exports.renderRegistroManual = async (req, res) => {
 
 exports.salvarRegistroManual = async (req, res) => {
     try {
-        const funcionarioId = req.params.id; 
+        const funcionarioId = req.params.id;
         const { data, entrada, saidaAlmoco, voltaAlmoco, saida } = req.body;
         if (!data) return res.status(400).send("A data do registro é obrigatória!");
 
@@ -359,7 +385,7 @@ exports.renderRelatorios = async (req, res) => {
         while (dataAtualLoop <= dataFinalObj) {
             const diaSemana = dataAtualLoop.getDay();
             const dataFormatada = dataAtualLoop.toISOString().split('T')[0];
-            
+
             for (const func of funcionariosParaProcessar) {
                 const diasTrabalhoFunc = func.diasTrabalho || '1,2,3,4,5';
                 if (!diasTrabalhoFunc.includes(diaSemana.toString())) continue;
@@ -406,7 +432,7 @@ exports.downloadRelatorioCsv = async (req, res) => {
         while (dataAtualLoop <= dtFim) {
             const diaSemana = dataAtualLoop.getDay();
             const dataStr = dataAtualLoop.toISOString().split('T')[0];
-            
+
             for (const func of funcionariosParaProcessar) {
                 const diasTrabalhoFunc = func.diasTrabalho || '1,2,3,4,5';
                 if (!diasTrabalhoFunc.includes(diaSemana.toString())) continue;
@@ -444,7 +470,7 @@ exports.renderFolhaPonto = async (req, res) => {
 
         let funcionariosParaProcessar = funcionarioId === 'todos' ? listaFuncionarios : listaFuncionarios.filter(f => f.id == funcionarioId);
         const ids = funcionariosParaProcessar.map(f => f.id);
-        
+
         const [registros, ferias, configAlmoco] = await Promise.all([
             RegistroPonto.findAll({ where: { UserId: ids, timestamp: { [Op.between]: [dataInicioObj, dataFimObj] } }, order: [['timestamp', 'ASC']] }),
             Ferias.findAll({ where: { UserId: ids } }),
@@ -536,7 +562,7 @@ exports.downloadFolhaPontoPdf = async (req, res) => {
 
         const listaFuncionarios = await User.findAll({ where: { role: { [Op.in]: ['funcionario', 'rh'] }, EmpresaId: empresaId } });
         let funcionariosParaProcessar = funcionarioId === 'todos' ? listaFuncionarios : listaFuncionarios.filter(u => u.id == funcionarioId);
-        
+
         const ids = funcionariosParaProcessar.map(f => f.id);
         const [registros, ferias, configAlmoco, empresa] = await Promise.all([
             RegistroPonto.findAll({ where: { UserId: ids, timestamp: { [Op.between]: [new Date(dataInicio + 'T00:00:00-03:00'), new Date(dataFim + 'T23:59:59-03:00')] } }, order: [['timestamp', 'ASC']] }),
@@ -557,7 +583,7 @@ exports.downloadFolhaPontoPdf = async (req, res) => {
             while (dataLoop <= dataFimObj) {
                 const diaSemana = dataLoop.getDay();
                 const diaStr = dataLoop.toISOString().split('T')[0];
-                
+
                 if (diasTrabalhoFunc.includes(diaSemana.toString())) {
                     const regsDia = registros.filter(r => r.UserId === func.id && new Date(r.timestamp).toISOString().split('T')[0] === diaStr);
                     const diaInfo = { data: new Date(dataLoop), registros: regsDia, horasTrabalhadas: '00h 00m', saldoHoras: '', observacao: '' };
@@ -568,13 +594,13 @@ exports.downloadFolhaPontoPdf = async (req, res) => {
                     const diasArr = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
                     semanaAtual[diasArr[diaSemana]] = diaInfo;
                 }
-                
-                if (diaSemana === 6 || diaStr === dataFim) { 
-                    if (Object.keys(semanaAtual).length > 0) { 
-                        semanaAtual.dataInicioSemana = Object.values(semanaAtual)[0]?.data; 
-                        dadosFunc.semanas.push(semanaAtual); 
-                    } 
-                    semanaAtual = {}; 
+
+                if (diaSemana === 6 || diaStr === dataFim) {
+                    if (Object.keys(semanaAtual).length > 0) {
+                        semanaAtual.dataInicioSemana = Object.values(semanaAtual)[0]?.data;
+                        dadosFunc.semanas.push(semanaAtual);
+                    }
+                    semanaAtual = {};
                 }
                 dataLoop.setDate(dataLoop.getDate() + 1);
             }
@@ -613,8 +639,8 @@ exports.downloadFolhaPontoPdf = async (req, res) => {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="espelho.pdf"`);
         res.send(pdf);
-    } catch (e) { 
+    } catch (e) {
         console.error("Erro na geração do PDF:", e);
-        res.status(500).send("Erro ao gerar o PDF."); 
+        res.status(500).send("Erro ao gerar o PDF.");
     }
 };
