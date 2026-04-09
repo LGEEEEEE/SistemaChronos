@@ -14,6 +14,21 @@ function checarAutenticacao(req, res, next) {
         res.redirect('/login');
     }
 }
+async function checarTermos(req, res, next) {
+    try {
+        const user = await User.findByPk(req.session.userId);
+        if (!user) return res.redirect('/login');
+
+        // Se o usuário ainda não aceitou os termos, joga ele para a tela da LGPD
+        if (!user.termosAceitos) {
+            return res.redirect('/termos');
+        }
+
+        next();
+    } catch (error) {
+        res.status(500).send("Erro ao validar política de privacidade.");
+    }
+}
 
 // --- 2. AUTORIZAÇÃO DE RECURSOS HUMANOS (RH) ---
 async function checarAutorizacaoRH(req, res, next) {
@@ -193,5 +208,6 @@ module.exports = {
     checarAutorizacaoRH,
     checarAutorizacaoSuperAdmin,
     restringirPorIP,
-    checarStatusEmpresa // AQUI ESTÁ O GUARDIÃO EXPORTADO!
+    checarStatusEmpresa, // AQUI ESTÁ O GUARDIÃO EXPORTADO!
+    checarTermos
 };

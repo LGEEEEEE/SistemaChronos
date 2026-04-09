@@ -102,10 +102,23 @@
                                                 <% registros[usuario.id].forEach(r => { %>
                                                     <li class="mb-1 d-flex justify-content-between align-items-center border-bottom pb-1">
                                                         <span class="fw-bold text-secondary"><%= r.tipo %></span>
-                                                        <span><%= new Date(r.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %></span>
-                                                        <form action="/rh/registro-ponto/excluir/<%= r.id %>" method="POST" class="m-0 ms-2">
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Apagar" onclick="return confirm('Apagar este registo?')">×</button>
-                                                        </form>
+                                                        
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span><%= new Date(r.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %></span>
+                                                            
+                                                            <% if (r.latitude && r.longitude) { %>
+                                                                <a href="http://maps.google.com/maps?q=<%= r.latitude %>,<%= r.longitude %>" 
+                                                                   target="_blank" 
+                                                                   class="badge bg-danger text-white text-decoration-none shadow-sm"
+                                                                   title="Ver localização exata no Google Maps">
+                                                                   📍 Mapa
+                                                                </a>
+                                                            <% } %>
+                                                            
+                                                            <form action="/rh/registro-ponto/excluir/<%= r.id %>" method="POST" class="m-0 ms-1">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Apagar" onclick="return confirm('Apagar este registo?')">×</button>
+                                                            </form>
+                                                        </div>
                                                     </li>
                                                 <% }) %>
                                             </ul>

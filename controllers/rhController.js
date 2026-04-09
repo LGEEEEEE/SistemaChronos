@@ -74,7 +74,7 @@ exports.renderDashboard = async (req, res) => {
             ferias: feriasPorUsuario,
             duracaoAlmocoAtual,
             query: req.query,
-            userIdLogado: req.session.userId // 🚀 Injetando o seu ID para o front-end
+            userIdLogado: req.session.userId
         });
     } catch (error) {
         console.error("Erro dashboard RH:", error);
@@ -99,19 +99,14 @@ exports.renderEditarEmpresa = async (req, res) => {
         const empresa = await Empresa.findByPk(empresaId);
         const configIp = await Configuracao.findOne({ where: { chave: 'allowed_ips', EmpresaId: empresaId } });
 
-        // 🚀 CAPTURANDO O IP REAL NA HOSTINGER
         let userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
-
-        // Se vier mais de um IP (comum em proxies), pega o primeiro
         if (typeof userIp === 'string') userIp = userIp.split(',')[0].trim();
-
-        // Converte o localhost de IPv6 para IPv4 para ficar mais bonito na tela
         if (userIp === '::1' || userIp === '::ffff:127.0.0.1') userIp = '127.0.0.1';
 
         res.render('editar_empresa', {
             empresa,
             allowedIps: configIp ? configIp.valor : '',
-            userIp, // Enviando a variável do IP para o EJS
+            userIp,
             query: req.query
         });
     } catch (error) {
@@ -147,14 +142,11 @@ exports.atualizarLogo = async (req, res) => {
         const empresa = await Empresa.findByPk(empresaId);
 
         if (supabase) {
-            // 🚀 MÁGICA DA COMPRESSÃO AQUI!
-            // Vamos converter para WebP (muito mais leve) e limitar o tamanho para 500x500 px.
             const bufferComprimido = await sharp(req.file.buffer)
                 .resize({ width: 500, height: 500, fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 80 }) // 80% de qualidade mantém a imagem linda, mas minúscula!
+                .webp({ quality: 80 })
                 .toBuffer();
 
-            // Note que mudamos a extensão para .webp
             const fileName = `logo_${empresaId}_${Date.now()}.webp`;
 
             const { error } = await supabase.storage
@@ -169,12 +161,9 @@ exports.atualizarLogo = async (req, res) => {
         res.redirect('/rh/empresa?msg=logo_atualizada');
     } catch (error) {
         console.error("Erro ao atualizar logo:", error);
-
-        // Tratamento de erro caso o Supabase ainda reclame de algo
         if (error.statusCode === '413' || error.status === 400) {
             return res.redirect('/rh/empresa?erro=arquivo_muito_grande');
         }
-
         res.status(500).send('Erro interno ao atualizar a logo da empresa.');
     }
 };
@@ -186,8 +175,34 @@ exports.atualizarLogo = async (req, res) => {
 exports.renderCadastro = (req, res) => res.render('cadastro');
 
 exports.cadastrarFuncionario = async (req, res) => {
+
     const { nome, email, senha } = req.body;
     try {
+        // ==========================================
+        // 🛑 TRAVA DE LIMITE DINÂMICA (Gatekeeper SuperAdmin)
+        // ==========================================
+        const empresa = await Empresa.findByPk(req.session.empresaId);
+
+        // Mantendo a tradição: A Empresa Matriz (ID 1) tem recursos infinitos
+        if (empresa.id !== 1) {
+            const contagemFuncionarios = await User.count({
+                where: {
+                    EmpresaId: req.session.empresaId,
+                    role: 'funcionario' // 👈 AGORA ELE IGNORA O RH NA CONTAGEM DO LIMITE!
+                }
+            });
+
+            // Agora o leão de chácara olha o limite que foi definido no banco!
+            if (contagemFuncionarios >= empresa.limiteFuncionarios) {
+                return res.status(403).render('erro_generico', {
+                    titulo: 'Limite de Plano Atingido',
+                    mensagem: `O seu plano atual permite até ${empresa.limiteFuncionarios} colaboradores. Acesse "Definições da Empresa" para fazer o upgrade.`,
+                    voltarLink: '/rh/dashboard'
+                });
+            }
+        }
+        // ==========================================
+
         const senhaHash = await bcrypt.hash(senha, 10);
         let fotoReferenciaUrl = null;
         const diasTrabalhoStr = req.body.diasTrabalho ? req.body.diasTrabalho.join(',') : '1,2,3,4,5';
@@ -200,7 +215,6 @@ exports.cadastrarFuncionario = async (req, res) => {
             const { data: publicData } = supabase.storage.from('ponto-comprovantes').getPublicUrl(fileName);
             fotoReferenciaUrl = publicData.publicUrl;
 
-            // 🧠 NOVO: Roda a IA uma única vez e extrai o Descriptor!
             try {
                 const imgRef = new Image();
                 imgRef.src = req.file.buffer;
@@ -208,7 +222,6 @@ exports.cadastrarFuncionario = async (req, res) => {
                 const detRef = await faceapi.detectSingleFace(imgRef, options).withFaceLandmarks().withFaceDescriptor();
 
                 if (detRef) {
-                    // Converte a matriz matemática (Float32Array) para um Texto (JSON)
                     req.body.faceDescriptorTexto = JSON.stringify(Array.from(detRef.descriptor));
                 } else {
                     throw new Error("Rosto não detectado. Tente uma foto com iluminação melhor.");
@@ -223,7 +236,7 @@ exports.cadastrarFuncionario = async (req, res) => {
             EmpresaId: req.session.empresaId,
             fotoReferenciaUrl,
             diasTrabalho: diasTrabalhoStr,
-            faceDescriptor: req.body.faceDescriptorTexto || null // 🧠 Salvando no banco!
+            faceDescriptor: req.body.faceDescriptorTexto || null
         });
         res.redirect('/rh/dashboard?msg=func_cadastrado');
 
@@ -238,9 +251,6 @@ exports.cadastrarFuncionario = async (req, res) => {
 exports.deletarFuncionario = async (req, res) => {
     try {
         const { id } = req.params;
-
-        // 🛡️ A NOVA TRAVA: Se o ID a ser deletado for igual ao seu ID logado, bloqueia!
-        // O req.params.id vem como String, então precisamos converter para Número
         if (parseInt(id) === req.session.userId) {
             return res.redirect('/rh/dashboard?erro=auto_exclusao');
         }
@@ -278,7 +288,6 @@ exports.editarFuncionario = async (req, res) => {
             const { data } = supabase.storage.from('ponto-comprovantes').getPublicUrl(fileName);
             dadosParaAtualizar.fotoReferenciaUrl = data.publicUrl;
 
-            // 🧠 NOVO: Roda a IA e extrai o Descriptor na EDIÇÃO também!
             try {
                 const imgRef = new Image();
                 imgRef.src = req.file.buffer;
@@ -286,7 +295,6 @@ exports.editarFuncionario = async (req, res) => {
                 const detRef = await faceapi.detectSingleFace(imgRef, options).withFaceLandmarks().withFaceDescriptor();
 
                 if (detRef) {
-                    // Converte a matriz para texto e salva no banco
                     dadosParaAtualizar.faceDescriptor = JSON.stringify(Array.from(detRef.descriptor));
                 } else {
                     throw new Error("Rosto não detectado na nova foto.");
@@ -538,7 +546,6 @@ exports.renderFolhaPonto = async (req, res) => {
                     semanaAtual[diasArr[diaSemana]] = diaInfo;
                 }
 
-                // 🚀 A CORREÇÃO: Comparando a string da data para garantir o fechamento exato!
                 if (diaSemana === 6 || diaStr === dataFim) {
                     if (Object.keys(semanaAtual).length > 0) {
                         semanaAtual.dataInicioSemana = Object.values(semanaAtual)[0]?.data;
@@ -608,18 +615,15 @@ exports.downloadFolhaPontoPdf = async (req, res) => {
             relatorioAgrupado.push(dadosFunc);
         }
 
-        // 🚀 CORREÇÃO DA LOGO: Baixando da nuvem para embutir no PDF
         let logoBase64 = null;
         if (empresa && empresa.logoPath) {
             try {
                 if (empresa.logoPath.startsWith('http')) {
-                    // Busca a imagem direto do Supabase
                     const response = await fetch(empresa.logoPath);
                     const buffer = await response.arrayBuffer();
                     const mimeType = empresa.logoPath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
                     logoBase64 = `data:${mimeType};base64,${Buffer.from(buffer).toString('base64')}`;
                 } else {
-                    // Fallback de segurança para arquivos locais
                     const p = path.join(__dirname, '..', 'public', empresa.logoPath);
                     if (fs.existsSync(p)) logoBase64 = `data:image/jpeg;base64,${fs.readFileSync(p).toString('base64')}`;
                 }

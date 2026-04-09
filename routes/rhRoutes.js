@@ -3,12 +3,17 @@ const router = express.Router();
 const rhController = require('../controllers/rhController');
 const upload = require('../middlewares/upload');
 
-// Importa os 3 seguranças
-const { checarAutenticacao, checarAutorizacaoRH, checarStatusEmpresa } = require('../middlewares/auth');
+// 👇 IMPORTAÇÃO CENTRALIZADA (Corrigida para evitar o SyntaxError)
+const { 
+    checarAutenticacao, 
+    checarAutorizacaoRH, 
+    checarStatusEmpresa, 
+    checarTermos 
+} = require('../middlewares/auth');
 
-// Aplica os 3 seguranças em TODAS as rotas do RH daqui para baixo
-// O 'checarStatusEmpresa' bloqueia empresas com ativo: false
-router.use(checarAutenticacao, checarAutorizacaoRH, checarStatusEmpresa);
+// Aplica os 4 seguranças em TODAS as rotas do RH daqui para baixo
+// O 'checarTermos' garante que o RH também aceite a LGPD antes de usar o painel
+router.use(checarAutenticacao, checarAutorizacaoRH, checarStatusEmpresa, checarTermos);
 
 // Dashboard Principal
 router.get('/rh/dashboard', rhController.renderDashboard);
@@ -28,11 +33,11 @@ router.post('/rh/funcionario/:id/horario', rhController.definirHorario);
 router.post('/rh/funcionario/ferias', rhController.agendarFerias);
 
 // ==========================================
-// Ajuste Manual e Exclusão de Ponto (CORRIGIDO)
+// Ajuste Manual e Exclusão de Ponto
 // ==========================================
 router.get('/rh/registro-manual/:id', rhController.renderRegistroManual);
 router.post('/rh/registro-manual/:id', rhController.salvarRegistroManual);
-router.post('/rh/registro-ponto/excluir/:id', rhController.excluirRegistroPonto); // A ROTA FUGITIVA ESTÁ AQUI AGORA!
+router.post('/rh/registro-ponto/excluir/:id', rhController.excluirRegistroPonto);
 
 // ==========================================
 // ROTAS DA EMPRESA

@@ -1,175 +1,195 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chronos - Planos e Assinaturas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; }
-        .navbar-chronos { background-color: #2c3e50; }
-        .card-plano { transition: transform 0.3s; }
-        .card-plano:hover { transform: translateY(-5px); }
-        .destaque { border: 2px solid #3498db; }
-        .badge-destaque { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); }
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .navbar-chronos {
+            background-color: #2c3e50;
+        }
+
+        .card-plano {
+            transition: transform 0.3s;
+        }
+
+        .card-plano:hover {
+            transform: translateY(-5px);
+        }
+
+        .destaque {
+            border: 2px solid #3498db;
+        }
+
+        .badge-destaque {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark navbar-chronos shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-                <img src="/icon.ico" alt="Logo Chronos" width="30" height="30" class="d-inline-block align-text-top me-2 rounded">
+                <img src="/icon.ico" alt="Logo Chronos" width="30" height="30"
+                    class="d-inline-block align-text-top me-2 rounded">
                 Chronos
             </a>
-            <div class="d-flex align-items-center">
-                <% if (userRole === 'rh') { %>
-                    <a href="/rh/dashboard" class="btn btn-outline-light btn-sm fw-bold">Acessar Meu Painel</a>
+            <div class="d-flex gap-2">
+                <% if (userRole==='rh' || userRole==='superadmin' ) { %>
+                    <a href="/rh/dashboard" class="btn btn-outline-light btn-sm fw-bold">Voltar ao Painel</a>
+                <% } else if (userRole==='funcionario' ) { %>
+                    <a href="/dashboard" class="btn btn-outline-light btn-sm fw-bold">Voltar</a>
                 <% } else { %>
-                    <a href="/login" class="text-white text-decoration-none me-3 fw-bold">Bater Ponto</a>
-                    <a href="/rh/login" class="btn btn-primary btn-sm fw-bold">Login RH</a>
+                    <a href="/login" class="btn btn-outline-light btn-sm fw-bold">Fazer Login</a>
                 <% } %>
             </div>
         </div>
     </nav>
 
     <div class="container py-5">
-        
-        <% if (locals.query && query.msg === 'conta_criada') { %>
-            <div class="alert alert-success text-center fw-bold mx-auto mb-5 shadow-sm" style="max-width: 600px;">
-                🎉 Conta criada com sucesso! Escolha o seu plano abaixo para liberar o painel da sua empresa.
+        <div class="text-center mb-5">
+            <h1 class="fw-bold text-dark">Escolha o plano ideal para a sua empresa</h1>
+            <p class="text-muted fs-5">Simplifique o controle de ponto com reconhecimento facial e IA.</p>
+        </div>
+
+        <% if (locals.query && query.msg==='conta_criada' ) { %>
+            <div class="alert alert-success text-center fw-bold shadow-sm mb-4" style="max-width: 600px; margin: 0 auto;">
+                🎉 Conta criada com sucesso! Escolha o seu plano abaixo para ativar o sistema.
             </div>
-            <div class="text-center mb-5">
-                <h2 class="fw-bold text-dark display-6">Finalize sua assinatura</h2>
-                <p class="fs-5 text-muted">Transação 100% segura via Mercado Pago.</p>
-            </div>
-        <% } else if (locals.query && query.erro === 'assinatura_pendente') { %>
-            <div class="alert alert-danger text-center fw-bold mx-auto mb-5 shadow-sm" style="max-width: 600px;">
-                ⚠️ O acesso da sua empresa está suspenso. Renove sua assinatura para continuar usando o Chronos.
-            </div>
-        <% } else { %>
-            <div class="text-center mb-5">
-                <h1 class="fw-bold text-dark display-5">O fim do relógio de ponto de parede.</h1>
-                <p class="fs-5 text-muted">Reconhecimento facial com IA e gestão de jornada sem dor de cabeça.</p>
+        <% } %>
+        <% if (locals.query && query.erro==='assinatura_pendente' ) { %>
+            <div class="alert alert-warning text-center fw-bold shadow-sm mb-4" style="max-width: 600px; margin: 0 auto;">
+                ⚠️ Sua assinatura está vencida. Renove agora para liberar o acesso da sua equipe.
             </div>
         <% } %>
 
-        <input type="hidden" id="empresaIdInput" value="<%= typeof empresaId !== 'undefined' ? empresaId : '' %>">
-
-        <div class="row justify-content-center gap-4">
-            
+        <div class="row justify-content-center g-4">
             <div class="col-md-5 col-lg-4">
-                <div class="card h-100 card-plano shadow-sm border-0 rounded-4 p-4">
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold text-secondary">Starter</h3>
-                        <h2 class="display-4 fw-bold text-dark mb-0">R$ 49,90<span class="fs-6 text-muted fw-normal">/mês</span></h2>
+                <div class="card card-plano shadow-sm border-0 h-100 rounded-4 p-3">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="fw-bold text-dark mb-1">Starter</h3>
+                        <p class="text-muted small mb-4">Para pequenas equipes</p>
+                        <h2 class="fw-bold text-primary mb-4">R$ 49,90<span class="fs-6 text-muted fw-normal"> /mês</span></h2>
+                        
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            <li class="mb-2">✅ Até <strong>5 funcionários</strong></li>
+                            <li class="mb-2">✅ Ponto por Reconhecimento Facial</li>
+                            <li class="mb-2">✅ Bloqueio de Ponto por IP</li>
+                            <li class="mb-2">✅ Extrato de Horas do Funcionário</li>
+                            <li class="mb-2 text-muted">❌ Sem Relatórios em PDF</li>
+                        </ul>
+
+                        <% if (empresaId) { %>
+                            <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="assinarPlano('starter')">Assinar Starter</button>
+                        <% } else { %>
+                            <a href="/empresa/cadastrar" class="btn btn-outline-primary btn-lg w-100 fw-bold">Criar Conta</a>
+                        <% } %>
                     </div>
-                    <ul class="list-unstyled mb-4 flex-grow-1">
-                        <li class="mb-3 border-bottom pb-2">✔️ Até 5 Funcionários</li>
-                        <li class="mb-3 border-bottom pb-2">✔️ Ponto com IA (Selfie)</li>
-                        <li class="mb-3 border-bottom pb-2">✔️ Relatórios em CSV</li>
-                    </ul>
-                    
-                    <% if (typeof empresaId !== 'undefined' && empresaId) { %>
-                        <button class="btn btn-success btn-lg fw-bold w-100" onclick="iniciarCheckout('starter', this)">Pagar R$ 49,90 agora</button>
-                    <% } else { %>
-                        <a href="/empresa/cadastrar?plano=starter" class="btn btn-outline-success btn-lg fw-bold w-100">Criar Conta e Assinar</a>
-                    <% } %>
                 </div>
             </div>
 
-            <div class="col-md-5 col-lg-4 position-relative">
-                <span class="badge bg-primary badge-destaque px-3 py-2 fs-6 rounded-pill shadow">MAIS ESCOLHIDO</span>
-                <div class="card h-100 card-plano destaque shadow border-0 rounded-4 p-4">
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold text-primary">Profissional</h3>
-                        <h2 class="display-4 fw-bold text-dark mb-0">R$ 149,90<span class="fs-6 text-muted fw-normal">/mês</span></h2>
+            <div class="col-md-5 col-lg-4">
+                <div class="card card-plano shadow h-100 rounded-4 p-3 destaque position-relative">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill badge-destaque shadow-sm fs-6">Mais Escolhido</span>
+                    <div class="card-body d-flex flex-column mt-2">
+                        <h3 class="fw-bold text-dark mb-1">Profissional</h3>
+                        <p class="text-muted small mb-4">Para empresas em crescimento</p>
+                        <h2 class="fw-bold text-primary mb-4">R$ 149,90<span class="fs-6 text-muted fw-normal"> /mês</span></h2>
+                        
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            <li class="mb-2">💎 Até <strong>20 funcionários</strong></li>
+                            <li class="mb-2">✅ Ponto por Reconhecimento Facial</li>
+                            <li class="mb-2">✅ Bloqueio de Ponto por IP</li>
+                            <li class="mb-2">✅ Extrato de Horas do Funcionário</li>
+                            <li class="mb-2">💎 <strong>Exportação de Folha em PDF</strong></li>
+                        </ul>
+
+                        <% if (empresaId) { %>
+                            <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="assinarPlano('pro')">Assinar PRO</button>
+                        <% } else { %>
+                            <a href="/empresa/cadastrar" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">Criar Conta</a>
+                        <% } %>
                     </div>
-                    <ul class="list-unstyled mb-4 flex-grow-1">
-                        <li class="mb-3 border-bottom pb-2">✔️ Até 20 Funcionários</li>
-                        <li class="mb-3 border-bottom pb-2">✔️ Ponto com IA Avançada</li>
-                        <li class="mb-3 border-bottom pb-2">✔️ Relatórios em PDF e CSV</li>
-                    </ul>
-                    
-                    <% if (typeof empresaId !== 'undefined' && empresaId) { %>
-                        <button class="btn btn-primary btn-lg fw-bold w-100" onclick="iniciarCheckout('pro', this)">Pagar R$ 149,90 agora</button>
-                    <% } else { %>
-                        <a href="/empresa/cadastrar?plano=pro" class="btn btn-outline-primary btn-lg fw-bold w-100">Criar Conta e Assinar</a>
-                    <% } %>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
-        async function iniciarCheckout(plano, btnElement) {
-            const empresaId = document.getElementById('empresaIdInput').value;
-            
-            // 🛡️ Abrimos a guia nova no exato milissegundo do clique
-            const guiaPagamento = window.open('', '_blank');
-            
+        // A função é chamada quando o usuário clica no botão "Assinar PRO"
+        // Ela recebe a string 'pro' ou 'starter' na variável "plano"
+        async function assinarPlano(plano) {
+            const btnElement = event.target;
             const textoOriginal = btnElement.innerText;
-            btnElement.innerText = "⏳ Gerando pagamento...";
+            btnElement.innerText = "Aguardando MP...";
             btnElement.disabled = true;
 
             try {
+                // 1. Pede a intenção de pagamento pro nosso Backend
                 const response = await fetch('/pagamento/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plano, empresaId })
+                    body: JSON.stringify({ plano: plano, empresaId: '<%= empresaId %>' })
                 });
-
                 const data = await response.json();
 
+                // 2. Se o Mercado Pago liberou o link...
                 if (data.init_point) {
-                    // 1. Manda a guia navegar para o Mercado Pago
-                    guiaPagamento.location.href = data.init_point;
+                    btnElement.innerText = "Pagamento Aberto";
                     
-                    // 2. Transforma o botão original em um Radar visual
-                    btnElement.innerText = "👀 Escutando pagamento...";
-                    btnElement.classList.remove('btn-primary', 'btn-success');
-                    btnElement.classList.add('btn-warning', 'text-dark', 'fw-bold');
-
-                    // 3. 🚀 O RADAR BLINDADO (Passando o ID na URL)
+                    // Abre a aba do Mercado Pago magicamente via JS
+                    const guiaPagamento = window.open(data.init_point, '_blank');
+                    
+                    // 3. O Radar: Fica rodando a cada 3 segundos
                     const radarPix = setInterval(async () => {
                         try {
-                            const resStatus = await fetch(`/pagamento/status/${empresaId}?t=${new Date().getTime()}`, { cache: 'no-store' });
-                            const dataStatus = await resStatus.json();
+                            const res = await fetch(`/pagamento/status/<%= empresaId %>`);
+                            const status = await res.json();
                             
-                            if (dataStatus.ativo === true) {
-                                clearInterval(radarPix); 
+                            // 🛑 A TRAVA CORRIGIDA: Ele usa a mesma variável 'plano' recebida lá no topo da função!
+                            if (status.ativo === true && status.plano === plano) {
+                                clearInterval(radarPix); // Para o radar
                                 
-                                // 💥 A MÁGICA: Fecha a aba do Mercado Pago remotamente!
+                                // 💥 Tenta fechar a aba do Mercado Pago
                                 try {
                                     if (guiaPagamento && !guiaPagamento.closed) {
                                         guiaPagamento.close();
                                     }
                                 } catch(err) {
-                                    console.log("Navegador bloqueou o fechamento.");
+                                    console.log("O navegador impediu de fechar a aba automaticamente.");
                                 }
 
-                                // Redireciona a tela atual para o sucesso!
+                                // Redireciona o cara para a glória!
                                 window.location.href = '/pagamento/sucesso'; 
                             }
                         } catch (e) {
-                            console.log("Aguardando...");
+                            console.log("Aguardando webhook do servidor...");
                         }
                     }, 3000);
 
                 } else {
-                    guiaPagamento.close();
-                    alert("Erro ao conectar com o Mercado Pago.");
+                    alert("Erro ao gerar pagamento no Mercado Pago.");
                     btnElement.innerText = textoOriginal;
                     btnElement.disabled = false;
                 }
             } catch (error) {
-                guiaPagamento.close();
-                alert("Erro de conexão com o servidor.");
+                alert("Erro de conexão com o servidor Chronos.");
                 btnElement.innerText = textoOriginal;
                 btnElement.disabled = false;
             }
         }
     </script>
 </body>
+
 </html>

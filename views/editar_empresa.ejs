@@ -35,7 +35,8 @@
             <a class="navbar-brand fw-bold d-flex align-items-center" href="/rh/dashboard">
                 <img src="/icon.ico" alt="Logo" width="30" height="30"
                     class="d-inline-block align-text-top me-2 rounded">
-                Chronos <span class="badge bg-light text-dark ms-2 fs-6 shadow-sm">RH</span>
+                Chronos 
+                <span class="badge bg-light text-dark ms-2 fs-6 shadow-sm">RH</span>
             </a>
             <a href="/rh/dashboard" class="btn btn-outline-light btn-sm fw-bold shadow-sm">← Voltar</a>
         </div>
@@ -47,129 +48,118 @@
 
                 <% if (locals.query) { %>
                     <% if (query.msg==='dados_salvos' ) { %>
-                        <div class="alert alert-success fw-bold shadow-sm">✅ Dados da empresa atualizados com sucesso!
+                        <div class="alert alert-success fw-bold shadow-sm">✅ Dados da empresa atualizados com sucesso!</div>
+                    <% } %>
+                    <% if (query.msg==='logo_atualizada' ) { %>
+                        <div class="alert alert-success fw-bold shadow-sm">🖼️ Logo atualizada com sucesso!</div>
+                    <% } %>
+                    <% if (query.erro==='nome_vazio' ) { %>
+                        <div class="alert alert-danger fw-bold shadow-sm">⚠️ O nome da empresa não pode ficar vazio.</div>
+                    <% } %>
+                <% } %>
+
+                <div class="card shadow-sm border-0 rounded-4 mb-4 border-start border-primary border-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-3">💎 Assinatura e Plano</h5>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-dark">
+                                    Plano Atual: <span class="text-uppercase <%= empresa && empresa.plano === 'pro' ? 'text-primary' : 'text-success' %>"><%= empresa && empresa.plano ? empresa.plano : 'STARTER' %></span>
+                                </h6>
+                                <p class="mb-0 text-muted small">
+                                    <% if (empresa && empresa.plano === 'pro') { %>
+                                        Você tem acesso a todos os recursos. Limite de até 20 funcionários.
+                                    <% } else { %>
+                                        Limite de 5 funcionários. Relatórios em CSV.
+                                    <% } %>
+                                </p>
+                            </div>
+                            <% if (!empresa || empresa.plano !== 'pro') { %>
+                                <a href="/planos" class="btn btn-warning fw-bold shadow-sm text-dark">⭐ Fazer Upgrade (PRO)</a>
+                            <% } %>
                         </div>
-                        <% } %>
-                            <% if (query.msg==='logo_atualizada' ) { %>
-                                <div class="alert alert-success fw-bold shadow-sm">🖼️ Logo atualizada com sucesso!
+                    </div>
+                </div>
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="fw-bold text-dark mb-3">Logo da Empresa</h5>
+                        <div class="mb-3">
+                            <% if (empresa && empresa.logoPath) { %>
+                                <img src="<%= empresa.logoPath %>" alt="Logo da Empresa" class="logo-preview shadow-sm">
+                            <% } else { %>
+                                <div class="text-muted p-4 border rounded bg-light" style="display: inline-block;">Sem Logo Cadastrada</div>
+                            <% } %>
+                        </div>
+
+                        <form action="/rh/empresa/logo" method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
+                            <input type="file" name="logo" class="form-control mb-3 w-75" accept="image/*" required>
+                            <button type="submit" class="btn btn-secondary fw-bold w-75 shadow-sm">Atualizar Logo</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">Informações Gerais</h5>
+
+                        <form action="/rh/empresa/editar" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Nome da Empresa</label>
+                                <input type="text" name="nome" class="form-control" value="<%= empresa ? empresa.nome : '' %>" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">CNPJ</label>
+                                <input type="text" name="cnpj" class="form-control" value="<%= empresa && empresa.cnpj ? empresa.cnpj : '' %>" placeholder="Opcional">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary">IPs Permitidos para Bater Ponto</label>
+                                <textarea id="allowedIps" name="allowedIps" class="form-control bg-light" rows="3" placeholder="Ex: 192.168.1.1, 200.10.20.5"><%= typeof allowedIps !== 'undefined' ? allowedIps : '' %></textarea>
+
+                                <div class="d-flex justify-content-between align-items-start mt-2">
+                                    <div class="form-text m-0">Um IP por linha ou separados por vírgula. Deixe em branco para desativar a restrição de IP.</div>
+
+                                    <div class="badge bg-secondary p-2 shadow-sm d-flex align-items-center gap-2">
+                                        <span>Seu IP atual: <strong id="meuIp"><%= typeof userIp !=='undefined' ? userIp : '127.0.0.1' %></strong></span>
+                                        <button type="button" class="btn btn-light btn-sm py-0 px-2 fw-bold text-primary" onclick="adicionarMeuIp()" style="font-size: 0.75rem; border-radius: 4px;">
+                                            + Adicionar
+                                        </button>
+                                    </div>
                                 </div>
-                                <% } %>
-                                    <% if (query.erro==='nome_vazio' ) { %>
-                                        <div class="alert alert-danger fw-bold shadow-sm">⚠️ O nome da empresa não pode
-                                            ficar vazio.</div>
-                                        <% } %>
-                                            <% } %>
+                            </div>
 
-                                                <div class="card shadow-sm border-0 rounded-4 mb-4">
-                                                    <div class="card-body p-4 text-center">
-                                                        <h5 class="fw-bold text-dark mb-3">Logo da Empresa</h5>
-                                                        <div class="mb-3">
-                                                            <% if (empresa && empresa.logoPath) { %>
-                                                                <img src="<%= empresa.logoPath %>" alt="Logo da Empresa"
-                                                                    class="logo-preview shadow-sm">
-                                                                <% } else { %>
-                                                                    <div class="text-muted p-4 border rounded bg-light"
-                                                                        style="display: inline-block;">Sem Logo
-                                                                        Cadastrada</div>
-                                                                    <% } %>
-                                                        </div>
+                            <script>
+                                function adicionarMeuIp() {
+                                    const textarea = document.getElementById('allowedIps');
+                                    const meuIp = document.getElementById('meuIp').innerText;
 
-                                                        <form action="/rh/empresa/logo" method="POST"
-                                                            enctype="multipart/form-data"
-                                                            class="d-flex flex-column align-items-center">
-                                                            <input type="file" name="logo"
-                                                                class="form-control mb-3 w-75" accept="image/*"
-                                                                required>
-                                                            <button type="submit"
-                                                                class="btn btn-secondary fw-bold w-75 shadow-sm">Atualizar
-                                                                Logo</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
+                                    if (textarea.value.includes(meuIp)) {
+                                        alert("O seu IP atual já está na lista!");
+                                        return;
+                                    }
 
-                                                <div class="card shadow-sm border-0 rounded-4">
-                                                    <div class="card-body p-4">
-                                                        <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
-                                                            Informações Gerais</h5>
+                                    if (textarea.value.trim() === '') {
+                                        textarea.value = meuIp;
+                                    } else {
+                                        textarea.value = textarea.value.trim() + ', ' + meuIp;
+                                    }
 
-                                                        <form action="/rh/empresa/editar" method="POST">
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold text-secondary">Nome da
-                                                                    Empresa</label>
-                                                                <input type="text" name="nome" class="form-control"
-                                                                    value="<%= empresa ? empresa.nome : '' %>" required>
-                                                            </div>
+                                    // Pisca o campo de verde para dar um feedback visual de sucesso
+                                    textarea.style.transition = "border-color 0.3s, box-shadow 0.3s";
+                                    textarea.style.borderColor = "#198754";
+                                    textarea.style.boxShadow = "0 0 0 0.25rem rgba(25, 135, 84, 0.25)";
+                                    setTimeout(() => {
+                                        textarea.style.borderColor = "";
+                                        textarea.style.boxShadow = "";
+                                    }, 800);
+                                }
+                            </script>
 
-                                                            <div class="mb-3">
-                                                                <label
-                                                                    class="form-label fw-bold text-secondary">CNPJ</label>
-                                                                <input type="text" name="cnpj" class="form-control"
-                                                                    value="<%= empresa && empresa.cnpj ? empresa.cnpj : '' %>"
-                                                                    placeholder="Opcional">
-                                                            </div>
-
-                                                            <div class="mb-4">
-                                                                <label class="form-label fw-bold text-secondary">IPs
-                                                                    Permitidos para Bater Ponto</label>
-                                                                <textarea id="allowedIps" name="allowedIps"
-                                                                    class="form-control bg-light" rows="3"
-                                                                    placeholder="Ex: 192.168.1.1, 200.10.20.5"><%= typeof allowedIps !== 'undefined' ? allowedIps : '' %></textarea>
-
-                                                                <div
-                                                                    class="d-flex justify-content-between align-items-start mt-2">
-                                                                    <div class="form-text m-0">Um IP por linha ou
-                                                                        separados por vírgula. Deixe em branco para
-                                                                        desativar a restrição de IP.</div>
-
-                                                                    <div
-                                                                        class="badge bg-secondary p-2 shadow-sm d-flex align-items-center gap-2">
-                                                                        <span>Seu IP atual: <strong id="meuIp">
-                                                                                <%= typeof userIp !=='undefined' ?
-                                                                                    userIp : '127.0.0.1' %>
-                                                                            </strong></span>
-                                                                        <button type="button"
-                                                                            class="btn btn-light btn-sm py-0 px-2 fw-bold text-primary"
-                                                                            onclick="adicionarMeuIp()"
-                                                                            style="font-size: 0.75rem; border-radius: 4px;">
-                                                                            + Adicionar
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <script>
-                                                                function adicionarMeuIp() {
-                                                                    const textarea = document.getElementById('allowedIps');
-                                                                    const meuIp = document.getElementById('meuIp').innerText;
-
-                                                                    if (textarea.value.includes(meuIp)) {
-                                                                        alert("O seu IP atual já está na lista!");
-                                                                        return;
-                                                                    }
-
-                                                                    if (textarea.value.trim() === '') {
-                                                                        textarea.value = meuIp;
-                                                                    } else {
-                                                                        textarea.value = textarea.value.trim() + ', ' + meuIp;
-                                                                    }
-
-                                                                    // Pisca o campo de verde para dar um feedback visual de sucesso
-                                                                    textarea.style.transition = "border-color 0.3s, box-shadow 0.3s";
-                                                                    textarea.style.borderColor = "#198754";
-                                                                    textarea.style.boxShadow = "0 0 0 0.25rem rgba(25, 135, 84, 0.25)";
-                                                                    setTimeout(() => {
-                                                                        textarea.style.borderColor = "";
-                                                                        textarea.style.boxShadow = "";
-                                                                    }, 800);
-                                                                }
-                                                            </script>
-
-                                                            <button type="submit"
-                                                                class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">Salvar
-                                                                Alterações</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">Salvar Alterações</button>
+                        </form>
+                    </div>
+                </div>
 
             </div>
         </div>
