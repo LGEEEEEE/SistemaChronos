@@ -65,7 +65,16 @@ exports.renderDashboard = async (req, res) => {
             expedientes[u.id] = getHorarioExpediente(u, hoje);
         });
 
-        res.render('rh_dashboard', { usuarios: todosUsuarios, registros: registrosPorUsuario, horas: horasPorUsuario, expedientes, ferias: feriasPorUsuario, duracaoAlmocoAtual, query: req.query });
+        res.render('rh_dashboard', { 
+            usuarios: todosUsuarios, 
+            registros: registrosPorUsuario, 
+            horas: horasPorUsuario, 
+            expedientes, 
+            ferias: feriasPorUsuario, 
+            duracaoAlmocoAtual, 
+            query: req.query,
+            userIdLogado: req.session.userId // 🚀 Injetando o seu ID para o front-end
+        });
     } catch (error) {
         console.error("Erro dashboard RH:", error);
         res.status(500).send('Erro ao carregar dashboard.');
@@ -203,11 +212,21 @@ exports.cadastrarFuncionario = async (req, res) => {
 exports.deletarFuncionario = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // 🛡️ A NOVA TRAVA: Se o ID a ser deletado for igual ao seu ID logado, bloqueia!
+        // O req.params.id vem como String, então precisamos converter para Número
+        if (parseInt(id) === req.session.userId) {
+            return res.redirect('/rh/dashboard?erro=auto_exclusao');
+        }
+
         const funcionario = await User.findOne({ where: { id: id, EmpresaId: req.session.empresaId, role: { [Op.in]: ['funcionario', 'rh'] } } });
         if (!funcionario) return res.status(404).send('Funcionário não encontrado ou não pertence à sua empresa.');
+        
         await funcionario.destroy();
         res.redirect('/rh/dashboard?msg=func_deletado');
-    } catch (error) { res.status(500).send('Erro interno ao excluir.'); }
+    } catch (error) { 
+        res.status(500).send('Erro interno ao excluir.'); 
+    }
 };
 
 exports.renderEditarFuncionario = async (req, res) => {

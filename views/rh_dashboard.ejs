@@ -34,7 +34,7 @@
                 <h2 class="fw-bold text-dark mb-1">Painel de Controle do RH</h2>
                 <% const optionsData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; %>
                 <% const dataHoje = new Date().toLocaleDateString('pt-BR', optionsData); %>
-                <p class="text-muted mb-0 fs-5">Hoje é: <strong class="text-primary"><%= dataHoje %></strong></p>
+                <p class="text-muted mb-0 fs-5">Hoje é: <strong class="text-primary text-capitalize"><%= dataHoje %></strong></p>
             </div>
             <div>
                 <a href="/cadastro" class="btn btn-success btn-lg fw-bold shadow-sm">+ Adicionar Funcionário</a>
@@ -52,14 +52,11 @@
         </div>
 
         <% if (locals.query) { %>
+            <% if (query.erro === 'auto_exclusao') { %>
+                <div class="alert alert-danger fw-bold shadow-sm">⚠️ Operação bloqueada: Você não pode excluir a sua própria conta!</div>
+            <% } %>
             <% if (query.msg === 'func_cadastrado') { %>
                 <div class="alert alert-success fw-bold shadow-sm">✅ Funcionário cadastrado com sucesso!</div>
-            <% } %>
-            <% if (locals.avisoVencimento !== undefined) { %>
-                <div class="alert alert-warning shadow-sm border-0 mb-4 d-flex justify-content-between align-items-center">
-                    <div><strong>⏳ Atenção:</strong> A assinatura do Chronos expira em <strong><%= avisoVencimento %> dia(s)</strong>.</div>
-                    <a href="/planos" class="btn btn-warning btn-sm fw-bold shadow-sm">Renovar Agora</a>
-                </div>
             <% } %>
             <% if (query.msg === 'func_editado') { %>
                 <div class="alert alert-success fw-bold shadow-sm">✅ Dados atualizados com sucesso!</div>
@@ -67,37 +64,12 @@
             <% if (query.msg === 'func_deletado') { %>
                 <div class="alert alert-danger fw-bold shadow-sm">🗑️ Funcionário e os seus registros foram eliminados.</div>
             <% } %>
-            <% if (query.msg === 'horario_definido') { %>
-                <div class="alert alert-info fw-bold shadow-sm">⏰ Horário de expediente guardado.</div>
-            <% } %>
-            <% if (query.msg === 'registro_manual_ok') { %>
-                <div class="alert alert-success fw-bold shadow-sm">✍️ Registo manual inserido com sucesso.</div>
-            <% } %>
-            <% if (query.msg === 'registro_excluido') { %>
-                <div class="alert alert-warning fw-bold shadow-sm">🗑️ Batida de ponto eliminada.</div>
-            <% } %>
-            <% if (query.msg === 'config_salva') { %>
-                <div class="alert alert-success fw-bold shadow-sm">⚙️ Configurações gerais guardadas.</div>
-            <% } %>
         <% } %>
-
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body bg-light rounded d-flex align-items-center">
-                <form action="/rh/config/salvar" method="POST" class="d-flex align-items-center gap-3 m-0">
-                    <label class="fw-bold text-secondary mb-0">Duração Padrão do Almoço:</label>
-                    <div class="input-group" style="width: 150px;">
-                        <input type="number" name="duracaoAlmocoMinutos" value="<%= duracaoAlmocoAtual %>" required class="form-control">
-                        <span class="input-group-text">min</span>
-                    </div>
-                    <button type="submit" class="btn btn-dark fw-bold">Guardar</button>
-                </form>
-            </div>
-        </div>
 
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle mb-0 bg-white">
-                    <thead class="table-light text-secondary">
+                    <thead class="table-light text-secondary text-center">
                         <tr>
                             <th width="15%">Colaborador</th>
                             <th width="12%">Expediente Hoje</th>
@@ -119,9 +91,9 @@
                                             <span class="badge bg-info text-dark mt-1">RH</span>
                                         <% } %>
                                     </td>
-                                    <td>
+                                    <td class="text-center">
                                         <span class="badge bg-light text-dark border fs-6"><%= expedientes[usuario.id].entrada %></span>
-                                        <br>até<br>
+                                        <br><small>até</small><br>
                                         <span class="badge bg-light text-dark border fs-6"><%= expedientes[usuario.id].saida %></span>
                                     </td>
                                     <td>
@@ -130,14 +102,7 @@
                                                 <% registros[usuario.id].forEach(r => { %>
                                                     <li class="mb-1 d-flex justify-content-between align-items-center border-bottom pb-1">
                                                         <span class="fw-bold text-secondary"><%= r.tipo %></span>
-                                                        <span>
-                                                            <%= new Date(r.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %>
-                                                            
-                                                            <% if (r.latitude && r.longitude) { %>
-                                                                <a href="https://maps.google.com/?q=<%= r.latitude %>,<%= r.longitude %>" target="_blank" class="text-decoration-none ms-1" title="Ver Local no Mapa">📍</a>
-                                                            <% } %>
-
-                                                        </span>
+                                                        <span><%= new Date(r.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %></span>
                                                         <form action="/rh/registro-ponto/excluir/<%= r.id %>" method="POST" class="m-0 ms-2">
                                                             <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Apagar" onclick="return confirm('Apagar este registo?')">×</button>
                                                         </form>
@@ -154,11 +119,11 @@
                                     <td>
                                         <form action="/rh/funcionario/<%= usuario.id %>/horario" method="POST" class="d-flex flex-column gap-1 m-0">
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-light">Ent</span>
+                                                <span class="input-group-text">Ent</span>
                                                 <input type="time" name="horarioEntrada" class="form-control" value="<%= usuario.horarioEntrada || '09:00' %>" required>
                                             </div>
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-light">Sai</span>
+                                                <span class="input-group-text">Sai</span>
                                                 <input type="time" name="horarioSaida" class="form-control" value="<%= usuario.horarioSaida || '18:00' %>" required>
                                             </div>
                                             <button type="submit" class="btn btn-outline-primary btn-sm w-100 mt-1">Guardar</button>
@@ -167,36 +132,31 @@
                                     <td>
                                         <form action="/rh/funcionario/ferias" method="POST" class="d-flex flex-column gap-1 m-0">
                                             <input type="hidden" name="funcionarioId" value="<%= usuario.id %>">
-                                            <input type="date" name="dataInicio" class="form-control form-control-sm" required title="Data Início">
-                                            <input type="date" name="dataFim" class="form-control form-control-sm" required title="Data Fim">
+                                            <input type="date" name="dataInicio" class="form-control form-control-sm" required>
+                                            <input type="date" name="dataFim" class="form-control form-control-sm" required>
                                             <button type="submit" class="btn btn-outline-success btn-sm w-100 mt-1">Agendar</button>
                                         </form>
-                                        <% if (ferias[usuario.id] && ferias[usuario.id].length > 0) { %>
-                                            <div class="mt-2 text-center">
-                                                <span class="badge bg-warning text-dark w-100">Férias Agendadas</span>
-                                            </div>
-                                        <% } %>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column gap-2">
                                             <a href="/rh/registro-manual/<%= usuario.id %>" class="btn btn-secondary btn-sm fw-bold">✍️ Registo Manual</a>
                                             <div class="d-flex gap-2">
                                                 <a href="/rh/funcionario/editar/<%= usuario.id %>" class="btn btn-primary btn-sm flex-grow-1 fw-bold">Editar</a>
-                                                <form action="/rh/funcionario/deletar/<%= usuario.id %>" method="POST" class="m-0 flex-grow-1">
-                                                    <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('ATENÇÃO! Tens a certeza que queres eliminar este funcionário? TODOS os registros dele serão perdidos de forma irreversível.');">Eliminar</button>
-                                                </form>
+                                                
+                                                <% if (usuario.id !== userIdLogado) { %>
+                                                    <form action="/rh/funcionario/deletar/<%= usuario.id %>" method="POST" class="m-0 flex-grow-1">
+                                                        <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('ATENÇÃO! Tens a certeza que queres eliminar este funcionário?')">Eliminar</button>
+                                                    </form>
+                                                <% } else { %>
+                                                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1 fw-bold" disabled title="Você não pode se autoexcluir">Você</button>
+                                                <% } %>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                             <% }) %>
                         <% } else { %>
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <h4>Nenhum colaborador na equipa.</h4>
-                                    <p>Clica no botão verde acima para adicionar o teu primeiro funcionário.</p>
-                                </td>
-                            </tr>
+                            <tr><td colspan="7" class="text-center py-5 text-muted"><h4>Nenhum colaborador na equipa.</h4></td></tr>
                         <% } %>
                     </tbody>
                 </table>
