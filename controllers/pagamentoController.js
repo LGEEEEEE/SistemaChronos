@@ -35,7 +35,7 @@ exports.checkout = async (req, res) => {
                 items: [
                     { id: plano, title: titulo, quantity: 1, unit_price: preco, currency_id: 'BRL' }
                 ],
-                // 🚀 AQUI ESTÁ A MÁGICA: Mandamos o ID e o Plano juntos, separados por ':::'
+                // Mandamos o ID e o Plano juntos, separados por ':::'
                 external_reference: empresaId ? `${empresaId}:::${plano}` : 'sem_id_ainda',
                 back_urls: {
                     success: `${baseUrl}/pagamento/sucesso`,
@@ -76,12 +76,26 @@ exports.webhook = async (req, res) => {
 
                     if (empresa) {
                         const hoje = new Date();
-                        const novaDataVencimento = new Date(hoje.setDate(hoje.getDate() + 30));
+                        let novaDataVencimento;
+
+                        // Verifica se a empresa já tem um vencimento registrado e se ele ainda está no futuro
+                        if (empresa.dataVencimento && new Date(empresa.dataVencimento) > hoje) {
+                            // Renovação antecipada! O cliente não perde os dias que sobraram.
+                            // Pega a data de vencimento atual e soma 30 dias.
+                            novaDataVencimento = new Date(empresa.dataVencimento);
+                            novaDataVencimento.setDate(novaDataVencimento.getDate() + 30);
+                            console.log(`✅ [RENOVAÇÃO ACUMULADA] Vencimento estendido para: ${novaDataVencimento.toLocaleDateString('pt-BR')}`);
+                        } else {
+                            // ⚠️ Plano já estava vencido ou é o primeiro pagamento. Conta 30 dias a partir de hoje.
+                            novaDataVencimento = new Date(hoje);
+                            novaDataVencimento.setDate(novaDataVencimento.getDate() + 30);
+                            console.log(`✅ [NOVA ASSINATURA/REATIVAÇÃO] Vencimento gerado para: ${novaDataVencimento.toLocaleDateString('pt-BR')}`);
+                        }
 
                         await empresa.update({
                             ativo: true,
                             dataVencimento: novaDataVencimento,
-                            plano: planoComprado || 'starter' // 👈 Agora sim, salva no banco!
+                            plano: planoComprado || 'starter'
                         });
                         console.log(`✅ [SUCESSO] Empresa ${empresaId} fez upgrade para o plano ${planoComprado}!`);
                     }

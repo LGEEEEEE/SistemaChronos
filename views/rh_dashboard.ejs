@@ -29,6 +29,16 @@
     </nav>
 
     <div class="container-fluid px-4">
+
+        <% if (typeof diasParaVencer !== 'undefined' && diasParaVencer !== null && diasParaVencer <= 5 && diasParaVencer >= 0) { %>
+            <div class="alert alert-warning border-start border-4 border-warning shadow-sm fw-bold mb-4 d-flex align-items-center justify-content-between">
+                <div>
+                    ⚠️ Atenção: O plano da sua empresa vence em <%= diasParaVencer === 0 ? 'HOJE' : diasParaVencer + ' dia(s)' %>.
+                </div>
+                <a href="/planos" class="btn btn-dark btn-sm fw-bold shadow-sm">Renovar Agora</a>
+            </div>
+        <% } %>
+
         <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
             <div>
                 <h2 class="fw-bold text-dark mb-1">Painel de Controle do RH</h2>
@@ -102,19 +112,14 @@
                                                 <% registros[usuario.id].forEach(r => { %>
                                                     <li class="mb-1 d-flex justify-content-between align-items-center border-bottom pb-1">
                                                         <span class="fw-bold text-secondary"><%= r.tipo %></span>
-                                                        
                                                         <div class="d-flex align-items-center gap-2">
                                                             <span><%= new Date(r.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %></span>
-                                                            
                                                             <% if (r.latitude && r.longitude) { %>
-                                                                <a href="http://maps.google.com/maps?q=<%= r.latitude %>,<%= r.longitude %>" 
+                                                                <a href="https://www.google.com/maps?q=<%= r.latitude %>,<%= r.longitude %>" 
                                                                    target="_blank" 
                                                                    class="badge bg-danger text-white text-decoration-none shadow-sm"
-                                                                   title="Ver localização exata no Google Maps">
-                                                                   📍 Mapa
-                                                                </a>
+                                                                   title="Ver localização exata no Google Maps">📍 Mapa</a>
                                                             <% } %>
-                                                            
                                                             <form action="/rh/registro-ponto/excluir/<%= r.id %>" method="POST" class="m-0 ms-1">
                                                                 <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Apagar" onclick="return confirm('Apagar este registo?')">×</button>
                                                             </form>
@@ -155,10 +160,9 @@
                                             <a href="/rh/registro-manual/<%= usuario.id %>" class="btn btn-secondary btn-sm fw-bold">✍️ Registo Manual</a>
                                             <div class="d-flex gap-2">
                                                 <a href="/rh/funcionario/editar/<%= usuario.id %>" class="btn btn-primary btn-sm flex-grow-1 fw-bold">Editar</a>
-                                                
                                                 <% if (usuario.id !== userIdLogado) { %>
                                                     <form action="/rh/funcionario/deletar/<%= usuario.id %>" method="POST" class="m-0 flex-grow-1">
-                                                        <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('ATENÇÃO! Tens a certeza que queres eliminar este funcionário?')">Eliminar</button>
+                                                        <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('ATENÇÃO!\nTens a certeza que queres eliminar este funcionário?')">Eliminar</button>
                                                     </form>
                                                 <% } else { %>
                                                     <button type="button" class="btn btn-secondary btn-sm flex-grow-1 fw-bold" disabled title="Você não pode se autoexcluir">Você</button>

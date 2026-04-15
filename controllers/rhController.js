@@ -41,6 +41,14 @@ exports.renderDashboard = async (req, res) => {
         const inicioDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0, 0);
         const fimDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59, 999);
 
+        const empresa = await Empresa.findByPk(empresaId);
+        let diasParaVencer = null;
+        if (empresa && empresa.dataVencimento) {
+            const vencimento = new Date(empresa.dataVencimento);
+            const diffEmMs = vencimento - hoje;
+            diasParaVencer = Math.ceil(diffEmMs / (1000 * 60 * 60 * 24));
+        }
+
         const idsDosFuncionarios = todosUsuarios.map(u => u.id);
         let registrosDeHoje = [], todasFerias = [];
 
@@ -74,7 +82,8 @@ exports.renderDashboard = async (req, res) => {
             ferias: feriasPorUsuario,
             duracaoAlmocoAtual,
             query: req.query,
-            userIdLogado: req.session.userId
+            userIdLogado: req.session.userId,
+            diasParaVencer
         });
     } catch (error) {
         console.error("Erro dashboard RH:", error);
