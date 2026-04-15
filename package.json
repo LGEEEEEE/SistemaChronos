@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "puppeteer": "^24.26.0"
+    "puppeteer": "^24.26.0",
+    "sequelize-cli": "^6.6.5"
   }
 }

@@ -76,7 +76,7 @@
                 <h3><%= funcionario.nome %></h3>
                 <% if (funcionario.semanas && funcionario.semanas.length > 0) { %>
                     <% funcionario.semanas.forEach(semana => { %>
-                        <% const diasDaSemana = {segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta', sexta: 'Sexta'}; %>
+                        <% const diasDaSemana = {domingo: 'Domingo', segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta', sexta: 'Sexta', sabado: 'Sábado'}; %>
                         <table class="semana-tabela">
                             <thead>
                                 <tr>

@@ -26,7 +26,7 @@ exports.checkout = async (req, res) => {
         const preference = new Preference(client);
         const { plano, empresaId } = req.body;
 
-        const preco = plano === 'pro' ? 2.00 : 1.00;
+        const preco = plano === 'pro' ? 149.90 : 49.90;
         const titulo = plano === 'pro' ? 'Plano Profissional - Chronos' : 'Plano Starter - Chronos';
         const baseUrl = (process.env.BASE_URL || 'http://localhost:3000').trim().replace(/\/$/, '');
 

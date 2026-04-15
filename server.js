@@ -166,7 +166,6 @@ async function carregarModelosIA() {
     try {
         // CORREÇÃO: Desliga o alter se estiver usando o SQLite local para não perder dados
         const isProduction = process.env.NODE_ENV === 'production';
-        await sequelize.sync({ alter: isProduction }); 
         
         console.log('DB Sincronizado.');
         await iniciarSistema();
