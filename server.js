@@ -13,6 +13,7 @@ Module.prototype.require = function (request) {
 };
 
 // --- IMPORTAÇÕES GERAIS ---
+const notificacaoRoutes = require('./routes/notificacaoRoutes');
 const pagamentoRoutes = require('./routes/pagamentoRoutes');
 const tf = require('@tensorflow/tfjs');
 const faceapi = require('@vladmandic/face-api');
@@ -85,6 +86,10 @@ app.use('/superadmin', superAdminRoutes);
 
 // 2º As rotas do peão
 app.use('/', funcionarioRoutes); 
+
+app.use('/', notificacaoRoutes);
+// No seu server.js
+const lembreteService = require('./services/lembreteService'); // O agendador começa aqui
 
 // 3º O leão de chácara do RH fica por último para pegar o resto
 app.use('/', rhRoutes);          
@@ -167,6 +172,8 @@ async function carregarModelosIA() {
         // CORREÇÃO: Desliga o alter se estiver usando o SQLite local para não perder dados
         const isProduction = process.env.NODE_ENV === 'production';
         
+        await sequelize.sync({ alter: !isProduction });
+
         console.log('DB Sincronizado.');
         await iniciarSistema();
         await criarTabelaDeSessaoSeNaoExistir();

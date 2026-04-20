@@ -36,18 +36,21 @@ const Empresa = sequelize.define('Empresa', {
     valorMensalidade: { type: DataTypes.DECIMAL(10, 2), defaultValue: 49.90 }
 });
 
+// No arquivo models/db.js, adicione a nova coluna:
+
 const User = sequelize.define('User', {
     nome: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     senha: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.STRING, allowNull: false }, // 'funcionario', 'rh', 'superadmin'
+    role: { type: DataTypes.STRING, allowNull: false }, 
     horarioEntrada: { type: DataTypes.TIME, allowNull: true },
     horarioSaida: { type: DataTypes.TIME, allowNull: true },
     fotoReferenciaUrl: { type: DataTypes.STRING, allowNull: true },
     faceDescriptor: { type: DataTypes.TEXT, allowNull: true },
     termosAceitos: { type: DataTypes.BOOLEAN, defaultValue: false },
     EmpresaId: { type: DataTypes.INTEGER, allowNull: true },
-    diasTrabalho: { type: DataTypes.STRING, defaultValue: '1,2,3,4,5' } // 0=Dom, 1=Seg, 2=Ter... 6=Sáb
+    diasTrabalho: { type: DataTypes.STRING, defaultValue: '1,2,3,4,5' },
+    pushSubscription: { type: DataTypes.TEXT, allowNull: true } 
 });
 
 const RegistroPonto = sequelize.define('RegistroPonto', {
