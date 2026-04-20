@@ -63,8 +63,10 @@
                 <div class="mb-4 text-center">
                     <h2 class="text-dark fw-bold">Ponto Eletrônico</h2>
                     <% if (locals.user) { %>
-                        <p class="text-muted">Olá, <strong><%= user.nome %></strong>!</p>
-                    <% } %>
+                        <p class="text-muted">Olá, <strong>
+                                <%= user.nome %>
+                            </strong>!</p>
+                        <% } %>
                 </div>
 
                 <div id="banner-notificacao"
@@ -77,63 +79,75 @@
                     <button id="btn-ativar-push" class="btn btn-primary btn-sm fw-bold shadow-sm">Ativar</button>
                 </div>
 
-                <% if (locals.query && query.mensagem === 'ciclo_finalizado') { %>
-                    <div class="alert alert-warning text-center fw-bold">Você já completou as 4 batidas de ponto do dia!</div>
-                <% } else if (locals.query && query.msg === 'ponto_registrado') { %>
-                    <div class="alert alert-success text-center fw-bold">✅ Ponto registrado com sucesso!</div>
-                <% } else if (locals.query && query.erro === 'foto_obrigatoria') { %>
-                    <div class="alert alert-danger text-center fw-bold">📸 Você precisa permitir a câmera para bater o ponto!</div>
-                <% } else if (locals.query && query.erro === 'falha_geral') { %>
-                    <div class="alert alert-danger text-center fw-bold">❌ Ocorreu um erro ao enviar. Tente novamente.</div>
-                <% } %>
-
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-body text-center">
-                        <div class="camera-box shadow-sm mb-3">
-                            <video id="video-preview" autoplay playsinline muted></video>
-                            <div id="camera-erro-msg" class="text-white p-3" style="display: none; font-size: 14px;">
-                                Aguardando permissão da câmera...
-                            </div>
-                        </div>
-                        <canvas id="canvas-capture" style="display: none;"></canvas>
-                        <form id="form-registrar-ponto">
-                            <button id="btn-bater-ponto" type="submit" class="btn btn-success btn-lg w-100 fw-bold" disabled>
-                                INICIANDO CÂMERA E GPS...
-                            </button>
-                        </form>
+                <% if (locals.query && query.mensagem==='ciclo_finalizado' ) { %>
+                    <div class="alert alert-warning text-center fw-bold">Você já completou as 4 batidas de ponto do dia!
                     </div>
-                </div>
+                    <% } else if (locals.query && query.msg==='ponto_registrado' ) { %>
+                        <div class="alert alert-success text-center fw-bold">✅ Ponto registrado com sucesso!</div>
+                        <% } else if (locals.query && query.erro==='foto_obrigatoria' ) { %>
+                            <div class="alert alert-danger text-center fw-bold">📸 Você precisa permitir a câmera para
+                                bater o ponto!</div>
+                            <% } else if (locals.query && query.erro==='falha_geral' ) { %>
+                                <div class="alert alert-danger text-center fw-bold">❌ Ocorreu um erro ao enviar. Tente
+                                    novamente.</div>
+                                <% } %>
 
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom-0 pt-3">
-                        <h5 class="mb-0 text-dark fw-bold">Seus registros de hoje</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            <% if (registros && registros.length > 0) { %>
-                                <% registros.forEach(registro => { %>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
-                                        <span class="fw-bold text-secondary">
-                                            <%= registro.tipo %>
-                                        </span>
-                                        <span class="badge bg-light text-dark border fs-6">
-                                            <%= new Date(registro.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) %>
-                                        </span>
-                                    </li>
-                                <% }) %>
-                            <% } else { %>
-                                <li class="list-group-item text-center text-muted py-4">Nenhum registro hoje.</li>
-                            <% } %>
-                        </ul>
-                    </div>
-                </div>
+                                    <div class="card shadow-sm border-0 mb-4">
+                                        <div class="card-body text-center">
+                                            <div class="camera-box shadow-sm mb-3">
+                                                <video id="video-preview" autoplay playsinline muted></video>
+                                                <div id="camera-erro-msg" class="text-white p-3"
+                                                    style="display: none; font-size: 14px;">
+                                                    Aguardando permissão da câmera...
+                                                </div>
+                                            </div>
+                                            <canvas id="canvas-capture" style="display: none;"></canvas>
+                                            <form id="form-registrar-ponto">
+                                                <button id="btn-bater-ponto" type="submit"
+                                                    class="btn btn-success btn-lg w-100 fw-bold" disabled>
+                                                    INICIANDO CÂMERA E GPS...
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
 
-                <div class="d-grid gap-2">
-                    <a href="/meu_relatorio" class="btn btn-outline-secondary fw-bold">Ver meu extrato completo</a>
-                    <% if (locals.user && user.role === 'rh') { %>
-                        <a href="/rh/dashboard" class="btn btn-outline-primary mt-2 fw-bold">Acessar Área do RH</a>
-                    <% } %>
-                </div>
+                                    <div class="card shadow-sm border-0 mb-4">
+                                        <div class="card-header bg-white border-bottom-0 pt-3">
+                                            <h5 class="mb-0 text-dark fw-bold">Seus registros de hoje</h5>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <ul class="list-group list-group-flush">
+                                                <% if (registros && registros.length> 0) { %>
+                                                    <% registros.forEach(registro=> { %>
+                                                        <li
+                                                            class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                                                            <span class="fw-bold text-secondary">
+                                                                <%= registro.tipo %>
+                                                            </span>
+                                                            <span class="badge bg-light text-dark border fs-6">
+                                                                <%= new
+                                                                    Date(registro.timestamp).toLocaleTimeString('pt-BR',
+                                                                    { timeZone: 'America/Sao_Paulo' , hour: '2-digit' ,
+                                                                    minute: '2-digit' }) %>
+                                                            </span>
+                                                        </li>
+                                                        <% }) %>
+                                                            <% } else { %>
+                                                                <li class="list-group-item text-center text-muted py-4">
+                                                                    Nenhum registro hoje.</li>
+                                                                <% } %>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <a href="/meu_relatorio" class="btn btn-outline-secondary fw-bold">Ver meu
+                                            extrato completo</a>
+                                        <% if (locals.user && user.role==='rh' ) { %>
+                                            <a href="/rh/dashboard" class="btn btn-outline-primary mt-2 fw-bold">Acessar
+                                                Área do RH</a>
+                                            <% } %>
+                                    </div>
 
             </div>
         </div>
@@ -159,7 +173,7 @@
                     video.play();
                     const urlParams = new URLSearchParams(window.location.search);
                     const cicloFinalizado = urlParams.get('mensagem') === 'ciclo_finalizado';
-                    
+
                     if (!cicloFinalizado) {
                         btnBaterPonto.disabled = false;
                         btnBaterPonto.textContent = 'BATER PONTO AGORA';
@@ -254,71 +268,69 @@
 
     <script>
         const publicVapidKey = 'BBnq-4pr41V9tRIlxF-DHS69Mox3nvn-bBkqmkmo0b266mppiiLufJhSaFPA3T-rGlI0_0UH5mCf5dQsGNFeKvc';
-        
-        // Pega os elementos do banner
+
         const bannerNotificacao = document.getElementById('banner-notificacao');
         const btnAtivarPush = document.getElementById('btn-ativar-push');
 
-        // Verifica se já temos permissão. Se não, mostra o banner!
-        if ('Notification' in window && 'serviceWorker' in navigator) {
-            if (Notification.permission === 'default') {
-                bannerNotificacao.style.display = 'flex'; // Mostra o banner
+        // Função para verificar e esconder o banner se já estiver tudo OK
+        function gerenciarBanner() {
+            if (!('Notification' in window)) return;
+
+            // Se o usuário já permitiu, não precisamos mostrar o banner de convite
+            if (Notification.permission === 'granted') {
+                bannerNotificacao.style.display = 'none';
+            } else if (Notification.permission === 'default') {
+                bannerNotificacao.style.display = 'flex';
+            } else if (Notification.permission === 'denied') {
+                // Se foi negado, mostramos uma dica de como reativar
+                bannerNotificacao.style.display = 'flex';
+                bannerNotificacao.className = "alert alert-light border shadow-sm mb-4 d-flex align-items-center justify-content-between";
+                bannerNotificacao.innerHTML = "<div><strong>🔔 Lembretes bloqueados</strong><br><small>Clique no cadeado da barra de endereço para permitir notificações.</small></div>";
             }
         }
 
-        // Só chama o pop-up quando o usuário CLICAR no botão
         btnAtivarPush.addEventListener('click', async () => {
             try {
-                btnAtivarPush.innerText = "Aguardando...";
+                btnAtivarPush.innerText = "Ativando...";
                 btnAtivarPush.disabled = true;
 
-                // 1. Verifica se a URL é segura (localhost ou HTTPS)
-                if (!('serviceWorker' in navigator)) {
-                    throw new Error("O navegador bloqueou o Service Worker. Use localhost ou HTTPS.");
-                }
+                const registro = await navigator.serviceWorker.register('/sw.js');
+                const pronto = await navigator.serviceWorker.ready;
 
-                // 2. Registra o arquivo e AGUARDA a instalação completa
-                await navigator.serviceWorker.register('/sw.js');
-                const registro = await navigator.serviceWorker.ready;
-
-                // 3. Pede permissão e inscreve
-                const inscricao = await registro.pushManager.subscribe({
+                const inscricao = await pronto.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
                 });
 
-                // 4. Manda pro seu backend
                 const resposta = await fetch('/notificacao/inscrever', {
                     method: 'POST',
                     body: JSON.stringify(inscricao),
                     headers: { 'content-type': 'application/json' }
                 });
 
-                if (!resposta.ok) throw new Error("O Backend recusou a gravação no banco de dados.");
-
-                console.log('✅ Inscrição salva!');
-                bannerNotificacao.className = "alert alert-success shadow-sm mb-4 text-center fw-bold";
-                bannerNotificacao.innerHTML = "✅ Lembretes ativados com sucesso!";
-
-                setTimeout(() => { bannerNotificacao.style.display = 'none'; }, 3000);
+                if (resposta.ok) {
+                    bannerNotificacao.className = "alert alert-success shadow-sm mb-4 text-center fw-bold";
+                    bannerNotificacao.innerHTML = "✅ Lembretes ativados! Vamos te avisar no horário do ponto.";
+                    setTimeout(() => { bannerNotificacao.style.display = 'none'; }, 4000);
+                }
 
             } catch (erro) {
-                console.error('⚠️ Erro detalhado:', erro);
-                alert('Falha ao ativar: ' + erro.message);
-
-                btnAtivarPush.innerText = "Tentar Novamente";
-                btnAtivarPush.disabled = false;
+                console.error('Erro ao ativar push:', erro);
+                // Mensagem amigável em vez de erro técnico
+                bannerNotificacao.className = "alert alert-warning shadow-sm mb-4 text-center";
+                bannerNotificacao.innerHTML = "<strong>⚠️ Ação Necessária:</strong> Clique no cadeado ao lado do endereço do site e mude 'Notificações' para 'Permitir'.";
             }
         });
+
+        // Roda a verificação ao carregar a página
+        gerenciarBanner();
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
             const rawData = window.atob(base64);
             const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) { 
-                outputArray[i] = rawData.charCodeAt(i);
-            }
+            for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
             return outputArray;
         }
     </script>
